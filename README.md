@@ -20,3 +20,10 @@ Identifikácia vyťaženosti leteckej siete v rámci jednotlivých dní v týžd
 Analýza najvýznamnejších svetových letísk z hľadiska hustoty prevádzky.
 
 
+
+<p align="center">
+  <img src="./erd diagram.png" alt="ERD Schema">
+  <br>
+  <em>Obrázok 1 erd diagram</em>
+</p>
+
