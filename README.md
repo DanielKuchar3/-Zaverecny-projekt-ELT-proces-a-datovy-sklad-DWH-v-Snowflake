@@ -128,4 +128,4 @@ ORDER BY carrier_cd_icao;
  DENSE_RANK() zabezpečí pridelenie unikátneho sekvenčného ID každému unikátnemu dopravcovi. GROUP BY zabezpečí, že každá kombinácia atribútov sa v dimenzii nachádza iba raz.
 
 
- 
+ Ahoj
