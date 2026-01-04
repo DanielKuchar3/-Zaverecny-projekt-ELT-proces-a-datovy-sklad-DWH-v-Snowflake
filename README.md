@@ -78,3 +78,54 @@ Pre každú dimenziu sme zvolili SCD Typ 0 (Original), pretože letecké poriadk
   <br>
   <em>Obrázok 2 Dimenzionálny model</em>
 </p>
+
+---
+
+## **3. ELT proces v Snowflake**
+# **Extract**
+
+
+Dáta boli získané zo Snowflake Marketplace. Bol vybraný dataset globálnych leteckých poriadkov od spoločnosti OAG.
+
+Zdrojová databáza: **`OAG_GLOBAL_AIRLINE_SCHEDULES_SAMPLE`**
+
+Zdrojová schéma: **`PUBLIC`**
+
+Zdrojová tabuľka: **`OAG_SCHEDULE`**
+
+Prvým krokom bolo vytvorenie staging tabuľky, ktorá slúži ako dočasné úložisko pre surové dáta pred ich ďalším spracovaním.
+```sql
+CREATE OR REPLACE TABLE flights AS
+SELECT * FROM oag_global_airline_schedules_sample.public.oag_schedule;
+```
+ Tento príkaz skopíruje všetky záznamy zo zdieľaného datasetu do našej lokálnej tabuľky flights, čím umožní vykonávať transformácie bez ovplyvnenia zdrojových dát.
+
+
+
+# **Transform**
+
+
+V tejto fáze dochádza k čisteniu dát, deduplikácii a tvorbe dimenzií. Využili sme techniku SCD Typ 0, kde sú historické údaje zachované v pôvodnom stave.
+
+Tvorba dimenzií a čistenie
+Pri tvorbe dimenzií sme použili klauzulu GROUP BY na odstránenie duplicít a funkciu DENSE_RANK() na generovanie unikátnych kľúčov.
+
+**Príklad transformácie (Dimenzia dopravcov):**
+```sql
+CREATE OR REPLACE TABLE dim_carrier AS
+SELECT
+    DENSE_RANK() OVER (ORDER BY carrier_cd_icao) AS id, -- Window funkcia pre ID
+    carrier,
+    carrier_cd_icao,
+    operating,
+    acft_owner,
+    fltno
+FROM flights
+GROUP BY carrier, carrier_cd_icao, operating, acft_owner, fltno
+ORDER BY carrier_cd_icao;
+```
+
+ DENSE_RANK() zabezpečí pridelenie unikátneho sekvenčného ID každému unikátnemu dopravcovi. GROUP BY zabezpečí, že každá kombinácia atribútov sa v dimenzii nachádza iba raz.
+
+
+ 
