@@ -70,3 +70,11 @@ Pre každú dimenziu sme zvolili SCD Typ 0 (Original), pretože letecké poriadk
 
 **`dim_service`** - Informácie o type servisu (palubné jedlo, trieda nákladu)
 
+
+
+
+<p align="center">
+  <img src="./dimenzionalny model.png" alt="Hviezdicová schéma">
+  <br>
+  <em>Obrázok 2 Dimenzionálny model</em>
+</p>
