@@ -1,0 +1,1 @@
+# -Zaverecny-projekt-ELT-proces-a-datovy-sklad-DWH-v-Snowflake
