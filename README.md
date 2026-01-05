@@ -421,8 +421,3 @@ LIMIT 10;
 ---
 
 **Autor:** Daniel Kuchar   ,   Juraj Švajda
-
----
-
-
-
