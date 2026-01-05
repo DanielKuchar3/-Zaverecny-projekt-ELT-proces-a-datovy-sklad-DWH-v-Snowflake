@@ -317,7 +317,7 @@ Dashboard obsahuje 5 kľúčových vizualizácií, ktoré poskytujú prehľad o 
   <em>Obrázok 4 graf 1</em>
 </p>
 
-Táto vizualizácia identifikuje najdlhšie trasy (long-haul), ktoré sú najnáročnejšie na palivo, čas a plánovanie posádok. Pomáha pochopiť geografický rozsah operácií a identifikovať kľúčové spojenia medzi kontinentmi.
+Táto vizualizácia identifikuje najdlhšie trasy (long-haul), najdlhšia bola z Wuhanu(Čína) do Santiago (Ćile)
 
 ```sql
 SELECT 
@@ -341,7 +341,7 @@ LIMIT 10;
   <em>Obrázok 5 graf 2</em>
 </p>
 
-Táto vizualizácia odpovedá na otázku, ktoré letecké spoločnosti dominujú trhu z hľadiska objemu prepravnej kapacity. Identifikuje lídrov v odvetví, ktorí disponujú najväčším počtom prepravených pasažierov.
+Táto vizualizácia odpovedá na otázku, ktoré letecké spoločnosti dominujú trhu z hľadiska objemu prepravnej kapacity. Najviac ľudí prepravilo American Airlines.Druhý za ním je Delta Airlines.
 
 ```sql
 SELECT 
@@ -363,7 +363,7 @@ LIMIT 10;
   <em>Obrázok 6 graf 3</em>
 </p>
 
-Táto vizualizácia poskytuje prehľad o tom, ktoré krajiny generujú najväčší objem leteckej dopravy. Identifikuje kľúčové trhy a geografické centrá, z ktorých lietadlá najčastejšie štartujú.
+Táto vizualizácia poskytuje prehľad o tom, ktoré krajiny generujú najväčší objem leteckej dopravy. Identifikuje kľúčové trhy a geografické centrá, z ktorých lietadlá najčastejšie štartujú. Najviac odletelo z Veľkej Británie
 
 ```sql
 SELECT 
