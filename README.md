@@ -49,12 +49,13 @@ Tabuľka faktov uchováva kvantitatívne údaje o jednotlivých letoch a slúži
 
 **Primárny kľúč:** oag_schedule_fingerprint (unikátny identifikátor letového poriadku).
 
-**Cudzie kľúče:**
-dim_date_id (prepojenie na časovú os).
-dim_carrier_id (prepojenie na leteckého dopravcu).
-dim_aircraft_id (prepojenie na typ lietadla).
-dim_departure_id a dim_arrival_id (prepojenie na geografické údaje).
-dim_service_id, dim_tons_id.
+**Cudzie kľúče:**  
+dim_date_id (prepojenie na časovú os).  
+dim_carrier_id (prepojenie na leteckého dopravcu).  
+dim_aircraft_id (prepojenie na typ lietadla).  
+dim_departure_id a dim_arrival_id (prepojenie na geografické údaje).  
+dim_service_id (prepojenie na údaje služieb).
+
 
 **Tabuľky dimenzíí:**
 Pre každú dimenziu sme zvolili SCD Typ 0 (Original), pretože letecké poriadky v tomto datasete sú historické záznamy, kde sa atribúty spätne nemenia. V prípade potreby sledovania zmien (napr. zmena názvu aerolinky v čase) by sa využil SCD Typ 2.
@@ -109,7 +110,7 @@ FROM oag_global_airline_schedules_sample.public.oag_schedule;
 V tejto fáze dochádza k čisteniu dát, deduplikácii a tvorbe dimenzií. Využili sme techniku SCD Typ 0, kde sú historické údaje zachované v pôvodnom stave.
 
 Tvorba dimenzií a čistenie
-Pri tvorbe dimenzií sme použili klauzulu GROUP BY na odstránenie duplicít a funkciu DENSE_RANK() na generovanie unikátnych kľúčov.
+Pri tvorbe dimenzií sme použili klauzulu DISTINCT na odstránenie duplicít a funkciu ROW_NUMBER() na generovanie unikátnych kľúčov.
 
 **Príklad transformácie (Dimenzia dopravcov):**
 ```sql
