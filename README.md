@@ -302,7 +302,7 @@ JOIN dim_tons t
 Dashboard obsahuje 5 kľúčových vizualizácií, ktoré poskytujú prehľad o kapacitách, operačnej efektivite a geografickom rozložení letov. Tieto vizualizácie umožňujú manažmentu leteckých spoločností a letísk lepšie pochopiť dynamiku trhu.
 
 <p align="center">
-  <img src="./grafy.png" alt="grafy">
+  <img src="./graf.png" alt="grafy">
   <br>
   <em>Obrázok 3 Dashboard grafov</em>
 </p>
