@@ -429,7 +429,11 @@ JOIN dim_date d ON f.dim_date_id = d.id
 GROUP BY day_number, day_name
 ORDER BY day_number;
 ```
+---
 
+**Autor:** Daniel Kuchar   ,   Juraj Švajda
+
+---
 
 
 
