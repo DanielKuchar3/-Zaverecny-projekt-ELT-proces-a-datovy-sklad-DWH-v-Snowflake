@@ -379,7 +379,7 @@ LIMIT 10;
 **Graf 4:Priemerná dlžka letu z danej krajiny:**
 
 <p align="center">
-  <img src="./priemerna dlzka letu.png" alt="grafy">
+  <img src="./avg dlzka letu.png" alt="grafy">
   <br>
   <em>Obrázok 7 graf 4</em>
 </p>
