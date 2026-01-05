@@ -75,7 +75,7 @@ Pre každú dimenziu sme zvolili SCD Typ 0 (Original), pretože letecké poriadk
 
 
 <p align="center">
-  <img src="./dimenzionalny model.png" alt="Hviezdicová schéma">
+  <img src="./erd_diagramy/projekt_star_erd_diagram.png" alt="Hviezdicová schéma">
   <br>
   <em>Obrázok 2 Dimenzionálny model</em>
 </p>
