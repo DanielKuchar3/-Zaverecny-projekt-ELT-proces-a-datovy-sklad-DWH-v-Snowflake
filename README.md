@@ -1,6 +1,7 @@
-# Zaverecny projekt ELT proces a datovy sklad DWH v Snowflake
+# Projekt - OAG_GLOBAL_AIRLINE_SCHEDULES
 
- ## **Úvod a popis zdrojových dát** 
+
+ ## **1. Úvod a popis zdrojových dát** 
 
 Vybrali sme si dataset od spoločnosti OAG (dostupný cez Snowflake Marketplace), pretože poskytuje komplexný pohľad na logistiku leteckej dopravy vrátane detailných informácií o konfigurácii sedadiel a trasách.
 
