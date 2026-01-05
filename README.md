@@ -114,7 +114,7 @@ Pri tvorbe dimenzií sme použili klauzulu GROUP BY na odstránenie duplicít a 
 ```sql
 CREATE OR REPLACE TABLE dim_carrier AS
 SELECT
-    DENSE_RANK() OVER (ORDER BY carrier_cd_icao) AS id, -- Window funkcia pre ID
+    DENSE_RANK() OVER (ORDER BY carrier_cd_icao) AS id,
     carrier,
     carrier_cd_icao,
     operating,
@@ -127,5 +127,176 @@ ORDER BY carrier_cd_icao;
 
  DENSE_RANK() zabezpečí pridelenie unikátneho sekvenčného ID každému unikátnemu dopravcovi. GROUP BY zabezpečí, že každá kombinácia atribútov sa v dimenzii nachádza iba raz.
 
+**Dimenzia časov:**
+```sql
+ CREATE OR REPLACE TABLE dim_date AS
+SELECT
+    DENSE_RANK() OVER (ORDER BY flight_date) AS id,
+    flight_date,
+    arrday,
+    file_date,
+    elptim
+FROM flights
+GROUP BY flight_date, arrday, file_date, elptim
+ORDER BY flight_date;
+```
 
- Ahoj
+**Dimenzia lietadiel:**
+```sql
+CREATE OR REPLACE TABLE dim_aircraft AS
+SELECT
+    DENSE_RANK() OVER (ORDER BY equipment_cd_icao) AS id,
+    equipment_cd_icao,
+    genacft,
+    inpacft,
+    sad_name,
+    sad,
+    dupcarfl
+FROM flights
+GROUP BY equipment_cd_icao, genacft, inpacft, sad_name, sad, dupcarfl
+ORDER BY equipment_cd_icao;
+```
+
+**Dimenzia služieb:**
+```sql
+CREATE OR REPLACE TABLE dim_service AS
+SELECT
+    DENSE_RANK() OVER (ORDER BY service) AS id,
+    service,
+    px,
+    meals,
+    frtclass
+FROM flights
+GROUP BY service, px, meals, frtclass
+ORDER BY service;
+```
+
+**Dimenzia odletov:**
+```sql
+CREATE OR REPLACE TABLE dim_departure AS
+SELECT
+    DENSE_RANK() OVER (ORDER BY dep_port_cd_icao) AS id,
+    depcity,
+    depctry,
+    depapt,
+    dep_port_cd_icao,
+    deptim
+FROM flights
+GROUP BY depcity, depctry, depapt, dep_port_cd_icao, deptim
+ORDER BY dep_port_cd_icao;
+
+```
+
+**Dimenzia príletov:**
+```sql
+CREATE OR REPLACE TABLE dim_arrival AS
+SELECT
+    DENSE_RANK() OVER (ORDER BY arr_port_cd_icao) AS id,
+    arrcity,
+    arrctry,
+    arrapt,
+    arr_port_cd_icao,
+    arrtim
+FROM flights
+GROUP BY arrcity, arrctry, arrapt, arr_port_cd_icao, arrtim
+ORDER BY arr_port_cd_icao;
+
+```
+
+**Dimenzia hmotnosti:**
+```sql
+CREATE OR REPLACE TABLE dim_tons AS
+SELECT
+    DENSE_RANK() OVER (ORDER BY tons) AS id,
+    tons
+FROM flights
+GROUP BY tons
+ORDER BY tons;
+
+```
+
+
+# **Load**
+
+
+V záverečnej fáze ELT procesu sme naplnili faktovú tabuľku fact_flights. Tento krok transformuje ploché dáta zo stagingu do relačnej štruktúry.
+
+**Hlavný sql príkaz:**
+```sql
+CREATE OR REPLACE TABLE fact_flights AS
+SELECT
+    f.oag_schedule_fingerprint,
+    f.total_seats,
+    f.distance,
+    f.economy_class_seats,
+    ROUND((f.economy_class_seats * 100.0 / NULLIF(f.total_seats, 0)), 2) AS economy_class_pct,
+    f.economy_plus_class_seats,
+    f.premium_economy_class_seats,
+    f.business_class_seats,
+    f.first_class_seats,
+    d.id AS dim_date_id,
+    s.id AS dim_service_id,
+    a.id AS dim_aircraft_id,
+    c.id AS dim_carrier_id,
+    dep.id AS dim_departure_id,
+    arr.id AS dim_arrival_id,
+    t.id AS dim_tons_id
+FROM flights f
+
+-- DATE
+JOIN dim_date d
+  ON f.flight_date = d.flight_date
+ AND f.arrday = d.arrday
+ AND f.file_date = d.file_date
+ AND f.elptim = d.elptim
+
+-- SERVICE
+JOIN dim_service s
+  ON f.service = s.service
+ AND f.px = s.px
+ AND f.meals = s.meals
+ AND f.frtclass = s.frtclass
+
+-- AIRCRAFT
+JOIN dim_aircraft a
+  ON f.equipment_cd_icao = a.equipment_cd_icao
+ AND f.genacft = a.genacft
+ AND f.inpacft = a.inpacft
+ AND f.sad_name = a.sad_name
+ AND f.sad = a.sad
+ AND f.dupcarfl = a.dupcarfl
+
+-- CARRIER
+JOIN dim_carrier c
+  ON f.carrier_cd_icao = c.carrier_cd_icao
+ AND f.carrier = c.carrier
+ AND f.operating = c.operating
+ AND f.acft_owner = c.acft_owner
+ AND f.fltno = c.fltno
+
+-- DEPARTURE
+JOIN dim_departure dep
+  ON f.dep_port_cd_icao = dep.dep_port_cd_icao
+ AND f.depcity = dep.depcity
+ AND f.depctry = dep.depctry
+ AND f.depapt = dep.depapt
+ AND f.deptim = dep.deptim
+
+-- ARRIVAL
+JOIN dim_arrival arr
+  ON f.arr_port_cd_icao = arr.arr_port_cd_icao
+ AND f.arrcity = arr.arrcity
+ AND f.arrctry = arr.arrctry
+ AND f.arrapt = arr.arrapt
+ AND f.arrtim = arr.arrtim
+
+-- TONS
+JOIN dim_tons t
+  ON f.tons = t.tons;
+```
+
+## **4. Vizualizácia dát**
+
+Dashboard obsahuje 5 kľúčových vizualizácií, ktoré poskytujú prehľad o kapacitách, operačnej efektivite a geografickom rozložení letov. Tieto vizualizácie umožňujú manažmentu leteckých spoločností a letísk lepšie pochopiť dynamiku trhu.
+
+
