@@ -384,7 +384,7 @@ LIMIT 10;
   <em>Obrázok 7 graf 4</em>
 </p>
 
-Táto vizualizácia analyzuje efektivitu a charakter trás v jednotlivých krajinách. Pomáha identifikovať krajiny, ktoré sú primárne orientované na diaľkovú prepravu (long-haul) v porovnaní s krajinami s prevahou regionálnych letov.
+Táto vizualizácia analyzuje priemernú dĺžku letu. Pomáha identifikovať krajiny, ktoré sú primárne orientované na diaľkovú prepravu (long-haul) v porovnaní s krajinami s prevahou regionálnych letov. V tejto analýze vidieť prevahu najdlhšiích letov z Ameriky
 
 ```sql
 SELECT 
@@ -398,36 +398,25 @@ ORDER BY avg_duration DESC
 LIMIT 15;
 ```
 
-**Graf 5:Počet letov podľa dňa v týždni:**
+**Graf 5:Najpoužívanejšie typy lietadiel (podľa kódov):**
 
 <p align="center">
-  <img src="./pocet letov podla dna.png" alt="grafy">
+  <img src="./typ.png" alt="grafy">
   <br>
   <em>Obrázok 8 graf 5</em>
 </p>
 
-Táto vizualizácia sleduje počet letov v danom dni. Identifikuje dni s najvyšším náporom na kapacitu, čo je kľúčové pre operačné plánovanie letísk a optimalizáciu letových poriadkov leteckých spoločností.
-
+Tento graf zobrazuje distribúciu letov podľa kódov typov lietadiel. Na osi X vidíme technické označenia (napr. 32S pre Airbus A320).Dominancia kódu 32S a 737 potvrdzuje, že väčšina globálnej leteckej dopravy je realizovaná lietadlami na krátke a stredné vzdialenosti. 
 
 ```sql
 SELECT 
-    d.arrday AS day_number,
-    -- Prevod čísla dňa na zrozumiteľný názov pre graf
-    CASE 
-        WHEN d.arrday = '1' THEN 'Pondelok'
-        WHEN d.arrday = '2' THEN 'Utorok'
-        WHEN d.arrday = '3' THEN 'Streda'
-        WHEN d.arrday = '4' THEN 'Štvrtok'
-        WHEN d.arrday = '5' THEN 'Piatok'
-        WHEN d.arrday = '6' THEN 'Sobota'
-        WHEN d.arrday = '7' THEN 'Nedeľa'
-    END AS day_name,
-    -- SUM spočíta všetky sedadlá, TRY_TO_NUMBER ošetrí chybu s textom ''
-    SUM(COALESCE(TRY_TO_NUMBER(f.total_seats), 0)) AS total_capacity
+    a.genacft AS aircraft_type, 
+    COUNT(*) AS total_flights
 FROM fact_flights f
-JOIN dim_date d ON f.dim_date_id = d.id
-GROUP BY day_number, day_name
-ORDER BY day_number;
+JOIN dim_aircraft a ON f.dim_aircraft_id = a.id
+GROUP BY aircraft_type
+ORDER BY total_flights DESC
+LIMIT 10;
 ```
 ---
 
