@@ -80,6 +80,7 @@ FROM (SELECT DISTINCT service,px,meals,frtclass FROM airline_schedules_staging);
 
 SELECT * FROM dim_service ORDER BY id limit 10;
 
+/* --------- VYTVORENIE TABULKY FAKTOV --------- */
 CREATE or replace TABLE fact_flights AS 
 (SELECT fli.OAG_SCHEDULE_FINGERPRINT AS fingerprint,
     dep.id AS departure_id,
@@ -104,4 +105,5 @@ CREATE or replace TABLE fact_flights AS
     JOIN dim_aircraft air ON fli.equipment_cd_icao=air.equipment_cd_icao AND fli.genacft=air.genacft AND fli.inpacft=air.inpacft AND fli.sad_name=air.sad_name AND fli.sad=air.sad AND fli.dupcarfl=air.dupcarfl
     JOIN dim_carrier car ON fli.carrier=car.carrier AND fli.carrier_cd_icao=car.carrier_cd_icao AND fli.operating=car.operating AND fli.acft_owner=car.acft_owner AND CAST(fli.fltno AS INT)=car.fltno
     JOIN dim_date dat ON fli.flight_date=dat.flight_date AND fli.arrday=dat.arrday AND fli.file_date=dat.file_date
+
     JOIN dim_service ser ON fli.service=ser.service AND fli.px=ser.px AND fli.meals=ser.meals AND fli.frtclass=ser.frtclass);
