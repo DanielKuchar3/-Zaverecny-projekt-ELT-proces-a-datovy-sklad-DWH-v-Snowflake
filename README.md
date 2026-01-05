@@ -294,9 +294,141 @@ JOIN dim_arrival arr
 JOIN dim_tons t
   ON f.tons = t.tons;
 ```
+---
 
 ## **4. Vizualizácia dát**
 
 Dashboard obsahuje 5 kľúčových vizualizácií, ktoré poskytujú prehľad o kapacitách, operačnej efektivite a geografickom rozložení letov. Tieto vizualizácie umožňujú manažmentu leteckých spoločností a letísk lepšie pochopiť dynamiku trhu.
+
+<p align="center">
+  <img src="./grafy.png" alt="grafy">
+  <br>
+  <em>Obrázok 3 Dashboard grafov</em>
+</p>
+
+
+
+**Graf 1: Top 10 najdlhších leteckých trás (vzdialenosť):**
+
+<p align="center">
+  <img src="./10 najdlhsich tras.png" alt="grafy">
+  <br>
+  <em>Obrázok 4 graf 1</em>
+</p>
+
+Táto vizualizácia identifikuje najdlhšie trasy (long-haul), ktoré sú najnáročnejšie na palivo, čas a plánovanie posádok. Pomáha pochopiť geografický rozsah operácií a identifikovať kľúčové spojenia medzi kontinentmi.
+
+```sql
+SELECT 
+    dep.depapt || ' -> ' || arr.arrapt AS route,
+    MAX(f.distance) AS route_distance
+FROM fact_flights f
+JOIN dim_departure dep ON f.dim_departure_id = dep.id
+JOIN dim_arrival arr ON f.dim_arrival_id = arr.id
+GROUP BY route
+ORDER BY route_distance DESC
+LIMIT 10;
+
+```
+
+
+**Graf 2: Top 10 leteckých spoločností podľa počtu prepravených ľudí:**
+
+<p align="center">
+  <img src="./10 leteckych spolocnosti.png" alt="grafy">
+  <br>
+  <em>Obrázok 5 graf 2</em>
+</p>
+
+Táto vizualizácia odpovedá na otázku, ktoré letecké spoločnosti dominujú trhu z hľadiska objemu prepravnej kapacity. Identifikuje lídrov v odvetví, ktorí disponujú najväčším počtom prepravených pasažierov.
+
+```sql
+SELECT 
+    a.sad_name AS airline_name, 
+    SUM(COALESCE(f.total_seats, 0)) AS total_capacity
+FROM fact_flights f
+JOIN dim_aircraft a ON f.dim_aircraft_id = a.id
+GROUP BY airline_name
+HAVING total_capacity > 0
+ORDER BY total_capacity DESC
+LIMIT 10;
+```
+
+**Graf 3:Počet odletov podľa krajín:**
+
+<p align="center">
+  <img src="./pocet odletov podla krajin.png" alt="grafy">
+  <br>
+  <em>Obrázok 6 graf 3</em>
+</p>
+
+Táto vizualizácia poskytuje prehľad o tom, ktoré krajiny generujú najväčší objem leteckej dopravy. Identifikuje kľúčové trhy a geografické centrá, z ktorých lietadlá najčastejšie štartujú.
+
+```sql
+SELECT 
+    dep.depctry AS departure_country,
+    COUNT(*) AS number_of_flights
+FROM fact_flights f
+JOIN dim_departure dep ON f.dim_departure_id = dep.id
+GROUP BY departure_country
+ORDER BY number_of_flights DESC
+LIMIT 10;
+```
+
+**Graf 4:Priemerná dlžka letu z danej krajiny:**
+
+<p align="center">
+  <img src="./priemerna dlzka letu.png" alt="grafy">
+  <br>
+  <em>Obrázok 7 graf 4</em>
+</p>
+
+Táto vizualizácia analyzuje efektivitu a charakter trás v jednotlivých krajinách. Pomáha identifikovať krajiny, ktoré sú primárne orientované na diaľkovú prepravu (long-haul) v porovnaní s krajinami s prevahou regionálnych letov.
+
+```sql
+SELECT 
+    depctry AS country, 
+    ROUND(AVG(NULLIF(elptim, 0)), 2) AS avg_duration
+FROM flights
+WHERE depctry IS NOT NULL 
+  AND elptim > 0
+GROUP BY country
+ORDER BY avg_duration DESC
+LIMIT 15;
+```
+
+**Graf 5:Počet letov podľa dňa v týždni:**
+
+<p align="center">
+  <img src="./pocet letov podla dna.png" alt="grafy">
+  <br>
+  <em>Obrázok 8 graf 5</em>
+</p>
+
+Táto vizualizácia sleduje počet letov v danom dni. Identifikuje dni s najvyšším náporom na kapacitu, čo je kľúčové pre operačné plánovanie letísk a optimalizáciu letových poriadkov leteckých spoločností.
+
+
+```sql
+SELECT 
+    d.arrday AS day_number,
+    -- Prevod čísla dňa na zrozumiteľný názov pre graf
+    CASE 
+        WHEN d.arrday = '1' THEN 'Pondelok'
+        WHEN d.arrday = '2' THEN 'Utorok'
+        WHEN d.arrday = '3' THEN 'Streda'
+        WHEN d.arrday = '4' THEN 'Štvrtok'
+        WHEN d.arrday = '5' THEN 'Piatok'
+        WHEN d.arrday = '6' THEN 'Sobota'
+        WHEN d.arrday = '7' THEN 'Nedeľa'
+    END AS day_name,
+    -- SUM spočíta všetky sedadlá, TRY_TO_NUMBER ošetrí chybu s textom ''
+    SUM(COALESCE(TRY_TO_NUMBER(f.total_seats), 0)) AS total_capacity
+FROM fact_flights f
+JOIN dim_date d ON f.dim_date_id = d.id
+GROUP BY day_number, day_name
+ORDER BY day_number;
+```
+
+
 
 
