@@ -32,9 +32,9 @@ Taktiež sa tu nachádzajú údaje o rôznych triedach pre cestujúcich (economy
 
 
 <p align="center">
-  <img src="./erd diagram.png" alt="ERD Schema">
+  <img src="./erd_diagramy/projekt_orig_erd_diagram.png" alt="ERD Schema">
   <br>
-  <em>Obrázok 1 erd diagram</em>
+  <em>Obrázok 1 ERD diagram</em>
 </p>
 
 ---
@@ -96,8 +96,8 @@ Zdrojová tabuľka: **`OAG_SCHEDULE`**
 
 Prvým krokom bolo vytvorenie staging tabuľky, ktorá slúži ako dočasné úložisko pre surové dáta pred ich ďalším spracovaním.
 ```sql
-CREATE OR REPLACE TABLE flights AS
-SELECT * FROM oag_global_airline_schedules_sample.public.oag_schedule;
+CREATE TABLE airline_schedules_staging AS SELECT *
+FROM oag_global_airline_schedules_sample.public.oag_schedule;
 ```
  Tento príkaz skopíruje všetky záznamy zo zdieľaného datasetu do našej lokálnej tabuľky flights, čím umožní vykonávať transformácie bez ovplyvnenia zdrojových dát.
 
@@ -113,108 +113,81 @@ Pri tvorbe dimenzií sme použili klauzulu GROUP BY na odstránenie duplicít a 
 
 **Príklad transformácie (Dimenzia dopravcov):**
 ```sql
-CREATE OR REPLACE TABLE dim_carrier AS
-SELECT
-    DENSE_RANK() OVER (ORDER BY carrier_cd_icao) AS id,
-    carrier,
-    carrier_cd_icao,
-    operating,
-    acft_owner,
-    fltno
-FROM flights
-GROUP BY carrier, carrier_cd_icao, operating, acft_owner, fltno
-ORDER BY carrier_cd_icao;
+CREATE or replace TABLE dim_carrier AS
+SELECT ROW_NUMBER() OVER (ORDER BY carrier,carrier_cd_icao,operating,acft_owner,fltno) AS id,   -- vytváranie id
+  carrier,
+  carrier_cd_icao,
+  operating,
+  acft_owner,
+  CAST(fltno AS INT) AS fltno   -- konvertovanie string na int
+FROM (SELECT DISTINCT carrier, carrier_cd_icao, operating, acft_owner, fltno
+  FROM airline_schedules_staging);
 ```
 
- DENSE_RANK() zabezpečí pridelenie unikátneho sekvenčného ID každému unikátnemu dopravcovi. GROUP BY zabezpečí, že každá kombinácia atribútov sa v dimenzii nachádza iba raz.
+ ROW_NUMBER() zabezpečí pridelenie unikátneho sekvenčného ID každému unikátnemu dopravcovi. DISTINCT zabezpečí, že každá kombinácia atribútov sa v dimenzii nachádza iba raz.
 
 **Dimenzia časov:**
 ```sql
- CREATE OR REPLACE TABLE dim_date AS
-SELECT
-    DENSE_RANK() OVER (ORDER BY flight_date) AS id,
-    flight_date,
-    arrday,
-    file_date,
-    elptim
-FROM flights
-GROUP BY flight_date, arrday, file_date, elptim
-ORDER BY flight_date;
+ CREATE or replace TABLE dim_date AS
+SELECT ROW_NUMBER() OVER (ORDER BY flight_date, arrday, file_date) AS id,     -- vytváranie id
+  flight_date,
+  arrday,
+  file_date
+FROM (SELECT DISTINCT flight_date, arrday, file_date
+  FROM airline_schedules_staging);
 ```
 
 **Dimenzia lietadiel:**
 ```sql
-CREATE OR REPLACE TABLE dim_aircraft AS
-SELECT
-    DENSE_RANK() OVER (ORDER BY equipment_cd_icao) AS id,
-    equipment_cd_icao,
-    genacft,
-    inpacft,
-    sad_name,
-    sad,
-    dupcarfl
-FROM flights
-GROUP BY equipment_cd_icao, genacft, inpacft, sad_name, sad, dupcarfl
-ORDER BY equipment_cd_icao;
+CREATE or replace TABLE dim_arrival AS
+SELECT ROW_NUMBER() OVER (ORDER BY arrcity, arrctry, arrapt, arr_port_cd_icao, arrtim) AS id,  -- vytváranie id
+  arrcity,
+  arrctry,
+  arrapt,
+  arr_port_cd_icao,
+  TO_TIME( CONCAT( SUBSTR( arrtim, 1, 2), ':', SUBSTR( arrtim, 3, 2))) AS arrtim      -- konvertovanie string na time
+FROM( SELECT DISTINCT arrcity, arrctry, arrapt, arr_port_cd_icao, arrtim
+  FROM airline_schedules_staging);
 ```
 
 **Dimenzia služieb:**
 ```sql
-CREATE OR REPLACE TABLE dim_service AS
-SELECT
-    DENSE_RANK() OVER (ORDER BY service) AS id,
-    service,
-    px,
-    meals,
-    frtclass
-FROM flights
-GROUP BY service, px, meals, frtclass
-ORDER BY service;
+CREATE or replace TABLE dim_service AS
+SELECT ROW_NUMBER() OVER (ORDER BY service, px, meals, frtclass) AS id,        -- vytváranie id
+  service,
+  px,
+  meals,
+  frtclass
+FROM (SELECT DISTINCT service, px, meals, frtclass
+  FROM airline_schedules_staging);
 ```
 
 **Dimenzia odletov:**
 ```sql
-CREATE OR REPLACE TABLE dim_departure AS
-SELECT
-    DENSE_RANK() OVER (ORDER BY dep_port_cd_icao) AS id,
-    depcity,
-    depctry,
-    depapt,
-    dep_port_cd_icao,
-    deptim
-FROM flights
-GROUP BY depcity, depctry, depapt, dep_port_cd_icao, deptim
-ORDER BY dep_port_cd_icao;
-
+CREATE or replace TABLE dim_departure AS
+SELECT ROW_NUMBER() OVER (ORDER BY depcity, depctry, depapt, dep_port_cd_icao, deptim) AS id,   -- vytváranie id
+  depcity,
+  depctry,
+  depapt,
+  dep_port_cd_icao,
+  TO_TIME(CONCAT( SUBSTR( deptim, 1, 2), ':', SUBSTR( deptim, 3, 2))) AS deptim  -- konvertovanie string na time
+FROM(SELECT DISTINCT depcity, depctry, depapt, dep_port_cd_icao, deptim
+  FROM airline_schedules_staging);
 ```
 
 **Dimenzia príletov:**
 ```sql
-CREATE OR REPLACE TABLE dim_arrival AS
-SELECT
-    DENSE_RANK() OVER (ORDER BY arr_port_cd_icao) AS id,
-    arrcity,
-    arrctry,
-    arrapt,
-    arr_port_cd_icao,
-    arrtim
-FROM flights
-GROUP BY arrcity, arrctry, arrapt, arr_port_cd_icao, arrtim
-ORDER BY arr_port_cd_icao;
-
+CREATE or replace TABLE dim_arrival AS
+SELECT ROW_NUMBER() OVER (ORDER BY arrcity, arrctry, arrapt, arr_port_cd_icao, arrtim) AS id,   -- vytváranie id
+  arrcity,
+  arrctry,
+  arrapt,
+  arr_port_cd_icao,
+  TO_TIME( CONCAT( SUBSTR( arrtim, 1, 2), ':', SUBSTR( arrtim, 3, 2))) AS arrtim      -- konvertovanie string na time
+FROM( SELECT DISTINCT arrcity, arrctry, arrapt, arr_port_cd_icao, arrtim
+  FROM airline_schedules_staging);
 ```
 
-**Dimenzia hmotnosti:**
-```sql
-CREATE OR REPLACE TABLE dim_tons AS
-SELECT
-    DENSE_RANK() OVER (ORDER BY tons) AS id,
-    tons
-FROM flights
-GROUP BY tons
-ORDER BY tons;
-
-```
 
 
 # **Load**
@@ -224,76 +197,40 @@ V záverečnej fáze ELT procesu sme naplnili faktovú tabuľku fact_flights. Te
 
 **Hlavný sql príkaz:**
 ```sql
-CREATE OR REPLACE TABLE fact_flights AS
-SELECT
-    f.oag_schedule_fingerprint,
-    f.total_seats,
-    f.distance,
-    f.economy_class_seats,
-    ROUND((f.economy_class_seats * 100.0 / NULLIF(f.total_seats, 0)), 2) AS economy_class_pct,
-    f.economy_plus_class_seats,
-    f.premium_economy_class_seats,
-    f.business_class_seats,
-    f.first_class_seats,
-    d.id AS dim_date_id,
-    s.id AS dim_service_id,
-    a.id AS dim_aircraft_id,
-    c.id AS dim_carrier_id,
-    dep.id AS dim_departure_id,
-    arr.id AS dim_arrival_id,
-    t.id AS dim_tons_id
-FROM flights f
-
--- DATE
-JOIN dim_date d
-  ON f.flight_date = d.flight_date
- AND f.arrday = d.arrday
- AND f.file_date = d.file_date
- AND f.elptim = d.elptim
-
--- SERVICE
-JOIN dim_service s
-  ON f.service = s.service
- AND f.px = s.px
- AND f.meals = s.meals
- AND f.frtclass = s.frtclass
-
--- AIRCRAFT
-JOIN dim_aircraft a
-  ON f.equipment_cd_icao = a.equipment_cd_icao
- AND f.genacft = a.genacft
- AND f.inpacft = a.inpacft
- AND f.sad_name = a.sad_name
- AND f.sad = a.sad
- AND f.dupcarfl = a.dupcarfl
-
--- CARRIER
-JOIN dim_carrier c
-  ON f.carrier_cd_icao = c.carrier_cd_icao
- AND f.carrier = c.carrier
- AND f.operating = c.operating
- AND f.acft_owner = c.acft_owner
- AND f.fltno = c.fltno
-
--- DEPARTURE
-JOIN dim_departure dep
-  ON f.dep_port_cd_icao = dep.dep_port_cd_icao
- AND f.depcity = dep.depcity
- AND f.depctry = dep.depctry
- AND f.depapt = dep.depapt
- AND f.deptim = dep.deptim
-
--- ARRIVAL
-JOIN dim_arrival arr
-  ON f.arr_port_cd_icao = arr.arr_port_cd_icao
- AND f.arrcity = arr.arrcity
- AND f.arrctry = arr.arrctry
- AND f.arrapt = arr.arrapt
- AND f.arrtim = arr.arrtim
-
--- TONS
-JOIN dim_tons t
-  ON f.tons = t.tons;
+CREATE or replace TABLE fact_flights AS 
+(SELECT fli.OAG_SCHEDULE_FINGERPRINT AS fingerprint,
+  dep.id AS departure_id,
+  arr.id AS arrival_id,
+  air.id AS aircraft_id,
+  car.id AS carrier_id,
+  dat.id AS date_id,
+  ser.id AS service_id,
+  fli.total_seats,
+  fli.economy_class_seats,
+  fli.economy_plus_class_seats,
+  fli.premium_economy_class_seats,
+  fli.business_class_seats,
+  fli.first_class_seats,
+  fli.distance,
+  fli.tons,
+  ((CAST( SUBSTR( fli.elptim, 1, 3) AS INT) * 60) + (CAST( SUBSTR( fli.elptim, 4, 2) AS INT)))
+    AS elptim_minutes, -- konvertovanie HHHMM na číslo reprezentujúce čas letu v minútach
+  AVG(( CAST( SUBSTR( fli.elptim,1,3) AS INT) * 60) + (CAST( SUBSTR( fli.elptim, 4, 2) AS INT)))
+    OVER (PARTITION BY fli.depcity,fli.depctry,fli.arrcity,fli.arrctry)
+    AS avg_elptim_minutes,  -- vypocet priemerneho času letu z destinácie A do B
+  COUNT(fli.oag_schedule_fingerprint) OVER (PARTITION BY fli.depcity, fli.depctry, fli.arrcity, fli.arrctry)
+    AS count_flights        // počet uskutočnených letov z destinácie A do B
+FROM airline_schedules_staging fli
+  JOIN dim_departure dep ON fli.depcity = dep.depcity AND fli.depctry = dep.depctry AND fli.depapt = dep.depapt AND
+    fli.dep_port_cd_icao = dep.dep_port_cd_icao AND TO_TIME( CONCAT( SUBSTR( fli.deptim, 1, 2), ':', SUBSTR( fli.deptim, 3, 2))) = dep.deptim
+  JOIN dim_arrival arr ON fli.arrcity=arr.arrcity AND fli.arrctry=arr.arrctry AND fli.arrapt=arr.arrapt AND
+    fli.arr_port_cd_icao=arr.arr_port_cd_icao AND CONCAT(SUBSTR(fli.arrtim,1,2),':',SUBSTR(fli.arrtim,3,2))=arr.arrtim
+  JOIN dim_aircraft air ON fli.equipment_cd_icao=air.equipment_cd_icao AND fli.genacft=air.genacft AND fli.inpacft=air.inpacft AND
+    fli.sad_name=air.sad_name AND fli.sad=air.sad AND fli.dupcarfl=air.dupcarfl
+  JOIN dim_carrier car ON fli.carrier=car.carrier AND fli.carrier_cd_icao=car.carrier_cd_icao AND fli.operating=car.operating AND
+    fli.acft_owner=car.acft_owner AND CAST(fli.fltno AS INT)=car.fltno
+  JOIN dim_date dat ON fli.flight_date=dat.flight_date AND fli.arrday=dat.arrday AND fli.file_date=dat.file_date
+  JOIN dim_service ser ON fli.service=ser.service AND fli.px=ser.px AND fli.meals=ser.meals AND fli.frtclass=ser.frtclass);
 ```
 ---
 
