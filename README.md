@@ -259,11 +259,11 @@ Táto vizualizácia identifikuje najdlhšie trasy (long-haul), najdlhšia bola z
 
 ```sql
 SELECT 
-    dep.depapt || ' -> ' || arr.arrapt AS route,
-    MAX(f.distance) AS route_distance
+    CONCAT(dep.depapt, ' -> ', arr.arrapt) AS route,
+    MAX( f.distance) AS route_distance
 FROM fact_flights f
-JOIN dim_departure dep ON f.dim_departure_id = dep.id
-JOIN dim_arrival arr ON f.dim_arrival_id = arr.id
+JOIN dim_departure dep ON f.departure_id = dep.id
+JOIN dim_arrival arr ON f.arrival_id = arr.id
 GROUP BY route
 ORDER BY route_distance DESC
 LIMIT 10;
@@ -279,14 +279,14 @@ LIMIT 10;
   <em>Obrázok 5 graf 2</em>
 </p>
 
-Táto vizualizácia odpovedá na otázku, ktoré letecké spoločnosti dominujú trhu z hľadiska objemu prepravnej kapacity. Najviac ľudí prepravilo American Airlines.Druhý za ním je Delta Airlines.
+Táto vizualizácia odpovedá na otázku, ktoré letecké spoločnosti dominujú trhu z hľadiska objemu prepravnej kapacity. Najviac ľudí prepravilo Delta Airlines.Druhý za ním je American Airlines.
 
 ```sql
 SELECT 
     a.sad_name AS airline_name, 
-    SUM(COALESCE(f.total_seats, 0)) AS total_capacity
+    SUM( COALESCE( f.total_seats, 0)) AS total_capacity
 FROM fact_flights f
-JOIN dim_aircraft a ON f.dim_aircraft_id = a.id
+JOIN dim_aircraft a ON f.aircraft_id = a.id
 GROUP BY airline_name
 HAVING total_capacity > 0
 ORDER BY total_capacity DESC
@@ -347,13 +347,11 @@ LIMIT 15;
 Tento graf zobrazuje distribúciu letov podľa kódov typov lietadiel. Na osi X vidíme technické označenia (napr. 32S pre Airbus A320).Dominancia kódu 32S a 737 potvrdzuje, že väčšina globálnej leteckej dopravy je realizovaná lietadlami na krátke a stredné vzdialenosti. 
 
 ```sql
-SELECT 
-    a.genacft AS aircraft_type, 
-    COUNT(*) AS total_flights
+SELECT a.genacft AS aircraft_type,
+  COUNT(*) AS total_flights
 FROM fact_flights f
-JOIN dim_aircraft a ON f.dim_aircraft_id = a.id
-GROUP BY aircraft_type
-ORDER BY total_flights DESC
+  JOIN dim_aircraft a ON f.aircraft_id = a.id GROUP BY aircraft_type
+  ORDER BY total_flights DESC
 LIMIT 10;
 ```
 ---
