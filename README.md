@@ -255,7 +255,7 @@ Dashboard obsahuje 5 kľúčových vizualizácií, ktoré poskytujú prehľad o 
   <em>Obrázok 4 graf 1</em>
 </p>
 
-Táto vizualizácia identifikuje najdlhšie trasy (long-haul), najdlhšia bola z Wuhanu(Čína) do Santiago (Ćile)
+Táto vizualizácia identifikuje najdlhšie trasy (long-haul), najdlhšia bola z Wuhanu(Čína) do Santiago (Čile)
 
 ```sql
 SELECT 
