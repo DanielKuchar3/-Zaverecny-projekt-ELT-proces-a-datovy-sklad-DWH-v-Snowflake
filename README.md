@@ -250,7 +250,7 @@ Dashboard obsahuje 5 kľúčových vizualizácií, ktoré poskytujú prehľad o 
 **Graf 1: Top 10 najdlhších leteckých trás (vzdialenosť):**
 
 <p align="center">
-  <img src="./10 najdlhsich tras.png" alt="grafy">
+  <img src="./grafy/10 najdlhsich tras.png" alt="grafy">
   <br>
   <em>Obrázok 4 graf 1</em>
 </p>
