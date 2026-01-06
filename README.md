@@ -279,7 +279,7 @@ LIMIT 10;
   <em>Obrázok 5 graf 2</em>
 </p>
 
-Táto vizualizácia odpovedá na otázku, ktoré letecké spoločnosti dominujú trhu z hľadiska objemu prepravnej kapacity. Najviac ľudí prepravilo Delta Airlines.Druhý za ním je American Airlines.
+Táto vizualizácia odpovedá na otázku, ktoré letecké spoločnosti dominujú trhu z hľadiska objemu prepravnej kapacity. Najviac ľudí prepravilo Delta Airlines. Druhý za ním je American Airlines.
 
 ```sql
 SELECT 
@@ -301,14 +301,14 @@ LIMIT 10;
   <em>Obrázok 6 graf 3</em>
 </p>
 
-Táto vizualizácia poskytuje prehľad o tom, ktoré krajiny generujú najväčší objem leteckej dopravy. Identifikuje kľúčové trhy a geografické centrá, z ktorých lietadlá najčastejšie štartujú. Najviac odletelo z Veľkej Británie
+Táto vizualizácia poskytuje prehľad o tom, ktoré krajiny generujú najväčší objem leteckej dopravy. Identifikuje kľúčové trhy a geografické centrá, z ktorých lietadlá najčastejšie štartujú. Najviac odletelo z Spojených štátov amerických.
 
 ```sql
 SELECT 
     dep.depctry AS departure_country,
-    COUNT(*) AS number_of_flights
+    COUNT(f.fingerprint) AS number_of_flights
 FROM fact_flights f
-JOIN dim_departure dep ON f.dim_departure_id = dep.id
+JOIN dim_departure dep ON f.departure_id = dep.id
 GROUP BY departure_country
 ORDER BY number_of_flights DESC
 LIMIT 10;
@@ -326,11 +326,11 @@ Táto vizualizácia analyzuje priemernú dĺžku letu. Pomáha identifikovať kr
 
 ```sql
 SELECT 
-    depctry AS country, 
-    ROUND(AVG(NULLIF(elptim, 0)), 2) AS avg_duration
-FROM flights
-WHERE depctry IS NOT NULL 
-  AND elptim > 0
+    d.depctry AS country, 
+    ROUND(AVG(NULLIF(f.elptim_minutes, 0)), 2) AS avg_duration
+FROM fact_flights f JOIN dim_departure d ON f.departure_id=d.id
+WHERE d.depctry IS NOT NULL 
+  AND f.elptim_minutes > 0
 GROUP BY country
 ORDER BY avg_duration DESC
 LIMIT 15;
