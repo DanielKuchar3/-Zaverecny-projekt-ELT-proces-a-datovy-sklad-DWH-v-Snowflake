@@ -296,7 +296,7 @@ LIMIT 10;
 **Graf 3:Počet odletov podľa krajín:**
 
 <p align="center">
-  <img src="./pocet odletov podla krajin.png" alt="grafy">
+  <img src="./grafy/Pocet_odletov_podla_krajin.png" alt="grafy">
   <br>
   <em>Obrázok 6 graf 3</em>
 </p>
@@ -317,7 +317,7 @@ LIMIT 10;
 **Graf 4:Priemerná dlžka letu z danej krajiny:**
 
 <p align="center">
-  <img src="./avg dlzka letu.png" alt="grafy">
+  <img src="./grafy/Priemerna_dlzka_letu_z_danej_krajiny.png" alt="grafy">
   <br>
   <em>Obrázok 7 graf 4</em>
 </p>
