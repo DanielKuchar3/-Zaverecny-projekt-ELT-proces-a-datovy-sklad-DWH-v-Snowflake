@@ -274,7 +274,7 @@ LIMIT 10;
 **Graf 2: Top 10 leteckých spoločností podľa počtu prepravených ľudí:**
 
 <p align="center">
-  <img src="./10 leteckych spolocnosti.png" alt="grafy">
+  <img src="./grafy/Top_10_leteckych_spolocnosti_podla_poctu_prepravenych_ludi.png" alt="grafy">
   <br>
   <em>Obrázok 5 graf 2</em>
 </p>
@@ -339,7 +339,7 @@ LIMIT 15;
 **Graf 5:Najpoužívanejšie typy lietadiel (podľa kódov):**
 
 <p align="center">
-  <img src="./typ.png" alt="grafy">
+  <img src="./grafy/Najpouzivanejsie_typy_lietadiel_Podla_kodoveho_oznacenia.png" alt="grafy">
   <br>
   <em>Obrázok 8 graf 5</em>
 </p>
