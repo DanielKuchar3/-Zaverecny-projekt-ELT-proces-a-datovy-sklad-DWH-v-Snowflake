@@ -9,13 +9,13 @@ Dáta podporujú proces Plánovania leteckých kapacít a optimalizácie sietí 
 
 **Dataset obsahuje štruktúrované údaje, ktoré môžeme rozdeliť do niekoľkých kategórií:**
 
-**Identifikačné údaje letov:** Čísla letov, ICAO kódy dopravcov a unikátne identifikátory (fingerprints).
++ **Identifikačné údaje letov:** Čísla letov, ICAO kódy dopravcov a unikátne identifikátory (fingerprints).
 
-**Časové údaje:** Dátumy letov, časy odletov a príletov, celkový uplynutý čas (Elapsed Time).
++ **Časové údaje:** Dátumy letov, časy odletov a príletov, celkový uplynutý čas (Elapsed Time).
 
-**Kapacitné údaje:** Celkový počet sedadiel rozdelený podľa cestovných tried (Economy, Business, First Class, Premium Economy).
++  **Kapacitné údaje:** Celkový počet sedadiel rozdelený podľa cestovných tried (Economy, Business, First Class, Premium Economy).
 
-**Geografické údaje:** Mestá a krajiny odletu/príletu, ICAO kódy letísk a celková vzdialenosť (Distance).
++ **Geografické údaje:** Mestá a krajiny odletu/príletu, ICAO kódy letísk a celková vzdialenosť (Distance).
 
 
 
@@ -26,9 +26,9 @@ Sledovanie priemerných dĺžok letov a geografického rozloženia dopravy.
 Identifikácia vyťaženosti leteckej siete v rámci jednotlivých dní v týždni.
 Analýza najvýznamnejších svetových letísk z hľadiska hustoty prevádzky.
 
-V povodnej tabulke sa nachadzaju udaje o priletoch a odletoch,
+V pôvodnej tabuľke sa nachadzajú údaje o príletoch a odletoch,
 údaje o konrétnych typoch lietadla ako aj názov leteckej spoločnosti.
-Taktiež sa tu nachádzajú údaje o rôznych triedach pre cestujúcich (economy,first class,businnes class) a dátumoch letov.
+Taktiež sa tu nachádzajú údaje o rôznych triedach pre cestujúcich (economy, first class, businnes class) a dátumoch letov.
 
 
 <p align="center">
@@ -84,7 +84,7 @@ Pre každú dimenziu sme zvolili SCD Typ 0 (Original), pretože letecké poriadk
 ---
 
 ## **3. ELT proces v Snowflake**
-# **Extract**
+### **Extract**
 
 
 Dáta boli získané zo Snowflake Marketplace. Bol vybraný dataset globálnych leteckých poriadkov od spoločnosti OAG.
@@ -104,7 +104,7 @@ FROM oag_global_airline_schedules_sample.public.oag_schedule;
 
 
 
-# **Transform**
+### **Transform**
 
 
 V tejto fáze dochádza k čisteniu dát, deduplikácii a tvorbe dimenzií. Využili sme techniku SCD Typ 0, kde sú historické údaje zachované v pôvodnom stave.
@@ -191,7 +191,7 @@ FROM( SELECT DISTINCT arrcity, arrctry, arrapt, arr_port_cd_icao, arrtim
 
 
 
-# **Load**
+### **Load**
 
 
 V záverečnej fáze ELT procesu sme naplnili faktovú tabuľku fact_flights. Tento krok transformuje ploché dáta zo stagingu do relačnej štruktúry.
@@ -255,7 +255,7 @@ Dashboard obsahuje 5 kľúčových vizualizácií, ktoré poskytujú prehľad o 
   <em>Obrázok 4 graf 1</em>
 </p>
 
-Táto vizualizácia identifikuje najdlhšie trasy (long-haul), najdlhšia bola z Wuhanu(Čína) do Santiago (Čile)
+Táto vizualizácia identifikuje najdlhšie trasy (long-haul). Najdlhšia trasa bola z Wuhanu(Čína) do Santiago (Čile)
 
 ```sql
 SELECT 
@@ -279,7 +279,7 @@ LIMIT 10;
   <em>Obrázok 5 graf 2</em>
 </p>
 
-Táto vizualizácia odpovedá na otázku, ktoré letecké spoločnosti dominujú trhu z hľadiska objemu prepravnej kapacity. Najviac ľudí prepravilo Delta Airlines. Druhý za ním je American Airlines.
+Táto vizualizácia odpovedá na otázku, ktoré letecké spoločnosti dominujú trhu z hľadiska objemu prepravnej kapacity. Najviac ľudí prepravila spoločnosť Delta Airlines. Druhou spoločnosťou z hľadiska prepravy je American Airlines.
 
 ```sql
 SELECT 
@@ -301,7 +301,7 @@ LIMIT 10;
   <em>Obrázok 6 graf 3</em>
 </p>
 
-Táto vizualizácia poskytuje prehľad o tom, ktoré krajiny generujú najväčší objem leteckej dopravy. Identifikuje kľúčové trhy a geografické centrá, z ktorých lietadlá najčastejšie štartujú. Najviac odletelo z Spojených štátov amerických.
+Táto vizualizácia poskytuje prehľad o tom, ktoré krajiny generujú najväčší objem leteckej dopravy. Identifikuje kľúčové trhy a geografické centrá, z ktorých lietadlá najčastejšie štartujú. Najviac odletelo zo Spojených štátov amerických.
 
 ```sql
 SELECT 
@@ -322,7 +322,7 @@ LIMIT 10;
   <em>Obrázok 7 graf 4</em>
 </p>
 
-Táto vizualizácia analyzuje priemernú dĺžku letu. Pomáha identifikovať krajiny, ktoré sú primárne orientované na diaľkovú prepravu (long-haul) v porovnaní s krajinami s prevahou regionálnych letov. V tejto analýze vidieť prevahu najdlhšiích letov z Ameriky
+Táto vizualizácia analyzuje priemernú dĺžku letu. Pomáha identifikovať krajiny, ktoré sú primárne orientované na diaľkovú prepravu (long-haul) v porovnaní s krajinami s prevahou regionálnych letov. V tejto analýze vidieť prevahu najdlhšiích letov z Ameriky.
 
 ```sql
 SELECT 
